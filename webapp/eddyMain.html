@@ -16,6 +16,35 @@
 </head>
 <body>
 
+	<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '1779797905584809',
+      xfbml      : true,
+      version    : 'v2.6'
+    });
+  };
+
+  (function(d, s, id){
+     var js, fjs = d.getElementsByTagName(s)[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement(s); js.id = id;
+     js.src = "//connect.facebook.net/en_US/sdk.js";
+     fjs.parentNode.insertBefore(js, fjs);
+   }(document, 'script', 'facebook-jssdk'));
+   
+   FB.Event.subscribe('auth.authResponseChange', function (response) {
+  if (response.status === 'connected') {
+    alert("Successfully connected to Facebook!");
+  }
+  else if (response.status === 'not_authorized') {
+    alert("Login failed!");
+  } else {
+    alert("Unknown error!");
+  }
+});
+   
+</script>
 
 
 	<h3 align="center">Eddystone URL Demoo</h3>
@@ -31,6 +60,10 @@
 	   <div class="info" id="shortUrlInfo">Shorted url will appear here is successfull</div> <br><br>
 	  
 	  <button id="submit" >Submit</button><br/><br/>
+	  
+		<input type="button" value="Facebook Login" onclick="Login();" /><br><br>
+		<p>FB url will appear here --> <a id="fbURL"></a></p>
+		<img id="profileImage"> <p id = "displayName" ></p>
 	 
 	</div>
 
@@ -68,7 +101,7 @@ $("#submit").click(function () {
 	jQuery.urlShortener.settings.apiKey = 'AIzaSyAJ1cY6HGkca800Uf1WZzQx0g-atz56GV8';
 	
 	
-	$("#shortIt").click(function () {
+$("#shortIt").click(function () {
 
 	if($("#longUrl").val().length>0)
 	{
@@ -106,6 +139,26 @@ function isWebBluetoothEnabled() {
       return false;
     }
   }
+  
+  function Login() {
+  FB.login(function (response) {
+    if (response.authResponse) {
+      FB.api('/me?fields=link,name', function (response) {
+        document.getElementById("displayName").innerHTML = response.name;
+		document.getElementById("fbURL").innerHTML = "FB Profile Link";
+		document.getElementById("longUrl").value = response.link;
+		document.getElementById("fbURL").setAttribute("href", response.link);
+        FB.api('/me/picture?type=normal', function (response) {
+          document.getElementById("profileImage").setAttribute("src", response.data.url);
+        });
+      });
+      
+    } else {
+      alert("Login attempt failed!");
+    }
+  }, { scope: 'email,user_photos,publish_actions' });
+
+}
   
 </script>
 		
