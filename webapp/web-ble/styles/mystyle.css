@@ -1,0 +1,27 @@
+
+.hint {
+
+  position: absolute;
+    left: 5px;
+    right: auto;
+    bottom: 8px;
+  font-size: 12px;
+  line-height: 14px;
+  transition: all 0.3s cubic-bezier(0.55, 0, 0.55, 0.2);
+  /* Set our own color */
+  color: grey; }
+
+hr{
+
+  background-color:#0288d1;
+  min-width: 45%;
+
+}
+
+.twolines
+  {
+     font-size: 14px;
+     line-height: 16px;
+     height: 32px;
+     overflow: hidden;
+  }

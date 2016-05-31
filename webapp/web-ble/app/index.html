@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Angular Material style sheet -->
+  <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.css">
+  <link rel="stylesheet" type="text/css" href="../styles/mystyle.css">
+  <script src="../lib/jquery-1.6.js" type="text/javascript"></script>
+  <script src="../scripts/jquery.urlshortener.js" type="text/javascript"></script>
+
+
+
+</head>
+<body ng-app="myApp" ng-controller="myCtrl" ng-cloak>
+
+  <md-toolbar>
+
+    <div class="md-toolbar-tools">
+      <span>URL Configuration</span>
+      <!-- fill up the space between left and right area -->
+      <span flex></span>
+      <md-button class="md-raised" aria-label="Learn More">
+        Learn More
+      </md-button>
+    </div>
+
+  </md-toolbar>
+
+
+<div layout-fill class="" layout="column" layout-align="center start" layout-padding="5%">
+
+<div flex="50" layout="column" style="width:100%">
+    <h3>Provide the URL to broadcast</h3>
+    <div layout="row">
+      <md-checkbox ng-checked="useLinkedInUrl==false" ng-click="useLinkedInUrl=!useLinkedInUrl">
+      <b>Choose your own URL</b>
+                </md-checkbox>
+    </div>
+
+    <form name="myForm" ng-show="!useLinkedInUrl" >
+
+
+    <md-input-container  class="md-block" style="margin-left:2%;width:50%">
+      <label>URL</label>
+      <input required type="URL" name="enteredURL" ng-model="url"/>
+      <div ng-messages="enteredURL.$error" >
+          <div ng-show="myForm.enteredURL.$error.required" ng-message="required">This is required.</div>
+          <div ng-show="myForm.enteredURL.$invalid" ng-message="myForm.enteredURL.$invalid">Not a url.</div>
+        </div>
+      <!-- <div class="hint">This URL will be broadcasted to everyone in the hall</div> -->
+    </md-input-container>
+
+    </form>
+
+    <!--<div style="color:#0288d1;margin-top:10px"><b>{{enteredShortedURL}}</b></div>
+
+    <br/>
+    <div layout="row" style="min-width:50%">
+      <hr size = '3' noshade></hr>
+      <div style="display:inline;color:grey"><b>OR</b></div>
+
+    	<hr size = '3' noshade></hr>
+    </div>-->
+<br/>
+
+
+<div layout="row">
+  <md-checkbox ng-checked="useLinkedInUrl==true" ng-click="useLinkedInUrl=!useLinkedInUrl">
+  <b>Use your LinkedIn profile url</b>
+            </md-checkbox>
+</div>
+
+<div style="color:#0288d1;margin-top:10px"><b>{{linkedinShortedURL}}</b></div>
+    <div ng-show="useLinkedInUrl" style="margin-top:10px">
+      <script type="in/Login">
+      </script>
+
+    </div>
+
+</div>
+
+
+<div flex="50" style="width:60%">
+<div style="color:grey"><b>PREVIEW</b></div>
+<hr size = '3' noshade></hr>
+
+<md-list-item class="md-2-line">
+          <img id="profileImage" ng-src={{preview.image}} class="md-avatar" alt="URL image" />
+          <div class="md-list-item-text">
+            <h3><b>{{preview.header}}</b></h3>
+            <div class="twolines">{{preview.description}}
+                </div>
+          </div>
+        </md-list-item>
+</div>
+
+<md-button ng-disabled="(myForm.$invalid && !useLinkedInUrl) || (useLinkedInUrl && !isLinkedIn ) " class="md-raised md-primary" style="position:absolute;bottom:5%;right:5%"> START BROADCASTING </md-button>
+</div>
+
+  <!-- Angular Material requires Angular.js Libraries -->
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-animate.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-aria.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-messages.min.js"></script>
+
+  <!-- Angular Material Library -->
+  <script src="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.js"></script>
+
+  <!-- Your application bootstrap  -->
+  <script type="text/javascript">
+    /**
+     * You must include the dependency on 'ngMaterial'
+     */
+     var scope;
+     var isLinkedIn = false;
+
+    var app = angular.module('myApp', ['ngMaterial']);
+
+    app.controller("myCtrl", function($scope) {
+      $scope.url = "";
+      $scope.linkedinShortedURL = "";
+      $scope.useLinkedInUrl = false;
+
+      $scope.toggleCheckBox = function(abc){
+
+        if(abc==true){
+          abc = false;
+        }else {
+          abc = true;
+        }
+
+      }
+      scope = $scope;
+
+      $scope.preview = {
+        image:"../images/superman.png",
+        header:"www.enteredURL.com",
+        description:"Desription of the URL entered Lorem ipsum dolor sit amet"
+      };
+    });
+
+    function OnLinkedInFrameworkLoad() {
+      IN.Event.on(IN, "auth", OnLinkedInAuth);
+    }
+
+    function OnLinkedInAuth() {
+    IN.API.Profile("me").fields("firstName", "lastName", "picture-url", "headline", "summary", "public-profile-url").result(ShowProfileData);
+    }
+
+    function ShowProfileData(profiles) {
+      var member = profiles.values[0];
+      var id=member.id;
+      var firstName=member.firstName;
+      var lastName=member.lastName;
+      var photo=member.pictureUrl;
+      var headline=member.headline;
+      var profileUrl = member.publicProfileUrl;
+
+      scope.preview.image = photo;
+      scope.preview.header = firstName+" "+lastName;
+      scope.preview.description = headline;
+
+      isLinkedIn = true;
+      console.log(profileUrl);
+      getShortUrl(profileUrl);
+
+    }
+
+
+    jQuery.urlShortener.settings.apiKey = 'AIzaSyAJ1cY6HGkca800Uf1WZzQx0g-atz56GV8';
+
+    function getShortUrl(urlToShort){
+
+      if(urlToShort.length>0)
+      {
+        jQuery.urlShortener({
+            longUrl: urlToShort,
+            success: function (shortUrl)
+            {
+              if(isLinkedIn)
+              {
+                scope.linkedinShortedURL = shortUrl.split('://')[1];
+              }
+              else
+              {
+                scope.enteredShortedURL = shortUrl.split('://')[1];
+              }
+              scope.$apply();
+
+            },
+            error: function(err)
+            {
+              if(isLinkedIn)
+              {
+                scope.linkedinShortedURL = "Error shortening the linked profile url";
+              }
+              else
+              {
+                scope.enteredShortedURL = "Either entered value is invalid or some other error";
+              }
+              scope.$apply();
+            }
+        });
+      }
+
+    }
+
+
+    /*$(document).ready(function(){
+            var $element = $('[ng-controller="myCtrl"]');
+            scope = angular.element($element).scope();
+            console.log(scope);
+        });*/
+
+  </script>
+
+  <script type="text/javascript" src="//platform.linkedin.com/in.js">
+      api_key:   7543suhh8zxj4n
+      onLoad: OnLinkedInFrameworkLoad
+  </script>
+
+</body>
+</html>
