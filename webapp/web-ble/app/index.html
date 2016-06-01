@@ -7,11 +7,13 @@
   <link rel="stylesheet" type="text/css" href="../styles/mystyle.css">
   <script src="../lib/jquery-1.6.js" type="text/javascript"></script>
   <script src="../scripts/jquery.urlshortener.js" type="text/javascript"></script>
-
+  <script src="../scripts/eddystone.js" type="text/javascript"></script>
 
 
 </head>
 <body ng-app="myApp" ng-controller="myCtrl" ng-cloak>
+
+
 
   <md-toolbar>
 
@@ -19,8 +21,8 @@
       <span>URL Configuration</span>
       <!-- fill up the space between left and right area -->
       <span flex></span>
-      <md-button class="md-raised" aria-label="Learn More">
-        Learn More
+      <md-button target="_blank" href="https://developers.google.com/beacons/overview" class="md-raised" aria-label="Learn More">
+         Learn More
       </md-button>
     </div>
 
@@ -29,23 +31,25 @@
 
 <div layout-fill class="" layout="column" layout-align="center start" layout-padding="5%">
 
+<span ng-show="globalError" style="color:red" id="globalError"></span>
 <div flex="50" layout="column" style="width:100%">
     <h3>Provide the URL to broadcast</h3>
+    <br>
     <div layout="row">
       <md-checkbox ng-checked="useLinkedInUrl==false" ng-click="useLinkedInUrl=!useLinkedInUrl">
       <b>Choose your own URL</b>
                 </md-checkbox>
     </div>
 
-    <form name="myForm" ng-show="!useLinkedInUrl" >
+    <form id="myForm1" name="myForm" ng-show="!useLinkedInUrl" >
 
 
     <md-input-container  class="md-block" style="margin-left:2%;width:50%">
       <label>URL</label>
-      <input required type="URL" name="enteredURL" ng-model="url"/>
-      <div ng-messages="enteredURL.$error" >
-          <div ng-show="myForm.enteredURL.$error.required" ng-message="required">This is required.</div>
-          <div ng-show="myForm.enteredURL.$invalid" ng-message="myForm.enteredURL.$invalid">Not a url.</div>
+      <input required type="URL" name="nameEnteredURL" ng-model="enteredURL"/>
+      <div ng-messages="nameEnteredURL.$error" >
+          <div ng-show="myForm.nameEnteredURL.$error.required" ng-message="required">This is required.</div>
+          <div ng-show="myForm.nameEnteredURL.$invalid" ng-message="myForm.nameEnteredURL.$invalid">Not a url.</div>
         </div>
       <!-- <div class="hint">This URL will be broadcasted to everyone in the hall</div> -->
     </md-input-container>
@@ -70,10 +74,21 @@
             </md-checkbox>
 </div>
 
-<div style="color:#0288d1;margin-top:10px"><b>{{linkedinShortedURL}}</b></div>
+
     <div ng-show="useLinkedInUrl" style="margin-top:10px">
-      <script type="in/Login">
-      </script>
+      <div style="color:#0288d1;margin-top:10px;margin-left:20px"><b>{{linkedinURL}}</b></div>
+      <md-button ng-click="login()" ng-show="!linkedInUrlSuccess" class="md-raised md-primary">
+      <md-icon md-svg-src="../images/linkedin-box.svg"></md-icon>
+      Sign in to LinkedIn
+      </md-button>
+      <!--<script type="in/Login">
+      </script>-->
+      <br>
+
+      <md-button ng-click="logout()" ng-show="linkedInUrlSuccess" class="md-raised md-primary">
+      <md-icon md-svg-src="../images/linkedin-box.svg"></md-icon>
+      Choose another profile URL
+      </md-button>
 
     </div>
 
@@ -94,9 +109,15 @@
         </md-list-item>
 </div>
 
-<md-button ng-disabled="(myForm.$invalid && !useLinkedInUrl) || (useLinkedInUrl && !isLinkedIn ) " class="md-raised md-primary" style="position:absolute;bottom:5%;right:5%"> START BROADCASTING </md-button>
+<md-button ng-click="startBroadcasting()" ng-disabled="shouldDisable()" class="md-raised md-primary" style="position:absolute;bottom:5%;right:5%"> START BROADCASTING </md-button>
 </div>
+<div ng-show="loading" class="overlay">
 
+  <div layout="row" layout-align="center center"  style="height: 100%;width: 100%">
+     <div> <md-progress-circular class="md-primary md-hue-3" md-mode="indeterminate"></md-progress-circular> </div>
+    </div>
+
+  </div>
   <!-- Angular Material requires Angular.js Libraries -->
   <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular.min.js"></script>
   <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-animate.min.js"></script>
@@ -111,15 +132,48 @@
     /**
      * You must include the dependency on 'ngMaterial'
      */
-     var scope;
-     var isLinkedIn = false;
-
+    var scope;
+    var characteristic;
     var app = angular.module('myApp', ['ngMaterial']);
 
     app.controller("myCtrl", function($scope) {
       $scope.url = "";
-      $scope.linkedinShortedURL = "";
+      $scope.linkedinURL = "";
+      $scope.enteredURL = "";
+      $scope.shortedLinkedinURL = "";
+      $scope.shortedEnteredURL = "";
       $scope.useLinkedInUrl = false;
+      $scope.linkedInUrlSuccess = false;
+      $scope.shorteningLinkedInUrlSuccess = false;
+      $scope.shorteningEnteredUrlSuccess = false;
+      $scope.globalError = false;
+      $scope.loading = false;
+
+
+      $scope.shouldDisable = function(){
+
+      var ret = (!$scope.useLinkedInUrl && $scope.myForm.$invalid) || ($scope.useLinkedInUrl && !$scope.linkedInUrlSuccess )
+      return ret;
+
+      }
+
+      $scope.login = function(){
+
+         IN.UI.Authorize().place();
+         /*IN.User.authorize();*/
+
+      }
+
+      $scope.logout = function(){
+
+
+       IN.User.logout(function() {
+
+         $scope.login();
+
+        });
+
+      }
 
       $scope.toggleCheckBox = function(abc){
 
@@ -137,6 +191,101 @@
         header:"www.enteredURL.com",
         description:"Desription of the URL entered Lorem ipsum dolor sit amet"
       };
+
+      $scope.getShortUrl = function(urlToShort){
+
+        if(urlToShort.length>0)
+        {
+          jQuery.urlShortener({
+              longUrl: urlToShort,
+              success: function (shortUrl)
+              {
+                if($scope.useLinkedInUrl)
+                {
+                    $scope.shortedLinkedinURL = shortUrl.split('://')[1];
+                    $scope.shorteningLinkedInUrlSuccess = true;
+                    //onWrite($scope.shortedLinkedinURL);
+
+                }else
+                {
+                    $scope.shortedEnteredURL = shortUrl.split('://')[1];
+                    $scope.shorteningEnteredUrlSuccess = true;
+                    //onWrite($scope.shortedEnteredURL);
+
+                }
+
+                $scope.loading = false;
+                $scope.globalError = false;
+                $scope.$apply();
+              },
+              error: function(err)
+              {
+                if($scope.useLinkedInUrl)
+                {
+                    $scope.shortedLinkedinURL = '';
+                    $scope.shorteningLinkedInUrlSuccess = false;
+
+                }else
+                {
+                    $scope.shortedEnteredURL = '';
+                    $scope.shorteningEnteredUrlSuccess = false;
+                }
+
+                $scope.loading = false;
+                $("#globalError").html("Error shortening the URL. Try again.*");
+                $scope.globalError = true;
+
+              }
+          });
+        }
+
+      };
+
+      $scope.startBroadcasting = function () {
+
+      	 if((characteristic!==null) && (typeof(characteristic)!=='undefined')){
+
+
+      		if($scope.useLinkedInUrl && ($scope.linkedinURL.length>3) && $scope.linkedinURL!==null&&(typeof($scope.linkedinURL)!=='undefined'))
+          {
+            if(!$scope.shorteningLinkedInUrlSuccess || $scope.shortedLinkedinURL.length==0)
+            {
+              $scope.loading = true;
+              $scope.getShortUrl($scope.linkedinURL);
+
+            }else{
+
+              //onWrite($scope.shortedLinkedinURL);
+
+            }
+
+
+          }else if(!$scope.useLinkedInUrl && ($scope.enteredURL.length>3) && $scope.enteredURL!==null&&(typeof($scope.enteredURL)!=='undefined'))
+          {
+            if(!$scope.shorteningEnteredUrlSuccess || $scope.shortedEnteredURL.length==0)
+            {
+              $scope.loading = true;
+              $scope.getShortUrl($scope.enteredURL);
+
+            }else{
+
+                //onWrite($scope.shortedEnteredURL);
+            }
+
+          }
+
+
+
+      	}else{
+          $("#globalError").html("No device find. Please go back and connect to your device.*");
+          $scope.globalError = true;
+      	   //alert('Please choose a device first by clicking on Choose Device button.');
+      	}
+
+
+      	};
+
+
     });
 
     function OnLinkedInFrameworkLoad() {
@@ -160,57 +309,19 @@
       scope.preview.header = firstName+" "+lastName;
       scope.preview.description = headline;
 
-      isLinkedIn = true;
-      console.log(profileUrl);
-      getShortUrl(profileUrl);
+      scope.linkedInUrlSuccess = true;
+      scope.linkedinURL = profileUrl;
+      scope.$apply();
+      /*console.log(profileUrl);
+      getShortUrl(profileUrl);*/
 
     }
-
 
     jQuery.urlShortener.settings.apiKey = 'AIzaSyAJ1cY6HGkca800Uf1WZzQx0g-atz56GV8';
 
-    function getShortUrl(urlToShort){
-
-      if(urlToShort.length>0)
-      {
-        jQuery.urlShortener({
-            longUrl: urlToShort,
-            success: function (shortUrl)
-            {
-              if(isLinkedIn)
-              {
-                scope.linkedinShortedURL = shortUrl.split('://')[1];
-              }
-              else
-              {
-                scope.enteredShortedURL = shortUrl.split('://')[1];
-              }
-              scope.$apply();
-
-            },
-            error: function(err)
-            {
-              if(isLinkedIn)
-              {
-                scope.linkedinShortedURL = "Error shortening the linked profile url";
-              }
-              else
-              {
-                scope.enteredShortedURL = "Either entered value is invalid or some other error";
-              }
-              scope.$apply();
-            }
-        });
-      }
-
-    }
 
 
-    /*$(document).ready(function(){
-            var $element = $('[ng-controller="myCtrl"]');
-            scope = angular.element($element).scope();
-            console.log(scope);
-        });*/
+
 
   </script>
 
@@ -218,6 +329,8 @@
       api_key:   7543suhh8zxj4n
       onLoad: OnLinkedInFrameworkLoad
   </script>
+
+
 
 </body>
 </html>
