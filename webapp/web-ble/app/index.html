@@ -18,7 +18,7 @@
   <md-toolbar>
 
     <div class="md-toolbar-tools">
-      <span>URL Configuration</span>
+      <span>{{title}}</span>
       <!-- fill up the space between left and right area -->
       <span flex></span>
       <md-button target="_blank" href="https://developers.google.com/beacons/overview" class="md-raised" aria-label="Learn More">
@@ -28,8 +28,145 @@
 
   </md-toolbar>
 
+  <div ng-show="screen==1" layout="column" style="margin-top:20px;margin-left:10%;margin-right:10%">
 
-<div layout-fill class="" layout="column" layout-align="center start" layout-padding="5%">
+    <div align="end">
+      Have your own beacon ? <span ng-click="isSignedIn?screen=3:screen=2;isSignedIn?title='Credentials':title='Credentials';"
+      style="cursor:pointer;text-decoration:underline;color:blue"><b>Manage</b></span>
+    </div>
+
+    <div layout="row" style="margin-top:20px;" layout-align="center center">
+      <md-button ng-click="scan()" class="md-raised md-primary">START SCAN</md-button>
+    </div>
+
+    <div layout="column" layout-align="center center" style="margin-top:20px;">
+      <md-list flex >
+        <md-subheader class="md-no-sticky">Showing all nearby beacons</md-subheader>
+        <md-list-item class="md-3-line" ng-repeat="device in devicesList" ng-click="null">
+            <img ng-src="{{preview.image}}?{{$index}}" class="md-avatar" alt="{{device.name}}" />
+            <div class="md-list-item-text" layout="column">
+                <h3>{{ device.name }}</h3>
+                <h4>{{ preview.description }}</h4>
+            </div>
+        </md-list-item>
+      </md-list>
+    </div>
+  </div>
+
+  <div ng-show="screen==2" layout="column" style="margin-top:20px;margin-left:10%;margin-right:10%">
+
+    <form id="form2" name="form2" >
+    <h3 style="margin-left:2%;width:50%">Please look at the bottom/back of the device to find device UID & Password </h3>
+
+    <div>
+
+
+
+    </div>
+
+    <md-input-container  class="md-block" style="margin-left:2%;width:50%">
+      <label>Device-UID</label>
+      <input required type="PIN" name="deviceUid" ng-model="myDeviceId" ng-pattern="/^[0-9]{6}$/"/>
+      <div ng-messages="form2.deviceUid.$error" >
+          <div ng-message-exp="['required','pattern']" >Device UID must be 6 digit number.</div>
+          <!--<div ng-show="form2.deviceUid.$invalid" ng-message="form2.deviceUid.$invalid">Not a valid UID (6 digits).</div>-->
+        </div>
+      <!-- <div class="hint">This URL will be broadcasted to everyone in the hall</div> -->
+    </md-input-container>
+
+    <md-input-container  class="md-block" style="margin-left:2%;width:50%">
+      <label>Password</label>
+      <input required type="password" name="password" ng-model="myDevicePassword" ng-pattern="/^(?=.*\d)(?=.*[a-zA-Z]).{6,12}$/"/>
+      <div ng-messages="form2.password.$error" >
+          <div ng-message-exp="['required','pattern']">Password should be 6-12 character long containing only alphanumeric values.</div>
+          <!--<div ng-show="form2.password.$invalid" ng-message="form2.password.$invalid">Not a valid password.</div>-->
+        </div>
+      <!-- <div class="hint">This URL will be broadcasted to everyone in the hall</div> -->
+    </md-input-container>
+
+    <md-input-container  class="md-block" style="margin-left:2%;width:50%">
+      <label>PIN</label>
+      <input required type="PIN" name="pin" minlength="4" maxlength="4"ng-model="myDevicePin" ng-pattern="/^[0-9]{4}$/" />
+      <div ng-messages="form2.pin.$error">
+          <div ng-message-exp="['required', 'pattern']"> PIN must be exactly 4 digit number.</div>
+          <!--<div ng-show="form2.pin.$invalid" ng-message="form2.pin.$invalid">Not a valid PIN (4 digits number).</div>-->
+        </div>
+      <!-- <div class="hint">This URL will be broadcasted to everyone in the hall</div> -->
+    </md-input-container>
+
+<md-button ng-click="screen=3;title='Device ID';isSignedIn=true" ng-disabled="form2.$invalid" class="md-raised md-primary"
+          style="position:absolute;bottom:5%;right:5%"> NEXT </md-button>
+
+<md-button ng-click="screen=1;title='Nearby Devices';" class="md-raised md-primary"
+          style="position:absolute;bottom:5%;left:5%"> BACK </md-button>
+
+    </form>
+  </div>
+
+
+<div ng-show="screen==3" layout="column" layout="center center" style="margin-top:20px;margin-left:10%;margin-right:10%">
+
+<div layout="row" layout-align="end end">
+<md-button ng-click="screen=2;title='Credentials';isSignedIn=false;myDeviceId='';myDevicePin='';myDevicePassword=''"
+            class="md-raised md-primary"> Sign In to another device </md-button>
+</div>
+
+<div layout="row" layout-align="center center"><h2>Device Details <small></small></h2></div>
+
+<div layout="row" layout-align="center center">
+
+<h3 flex="30" align="center">Name</h3>
+<b flex="10" align="center">:</b>
+<h3 flex="30" align="center" style="color:#888">RAD-BEACON-A1201</h3>
+
+</div>
+
+<div layout="row" layout-align="center center">
+
+<h3 flex="30" align="center">MODE</h3>
+<b flex="10" align="center">:</b>
+<h3 flex="30" align="center" style="color:#888">EDDYSTONE-URL</h3>
+
+</div>
+
+<div layout="row" layout-align="center center">
+
+<h3 flex="30" align="center">URL</h3>
+<b flex="10" align="center">:</b>
+<h3 flex="30" align="center" style="color:#888">goo.le.wable</h3>
+
+</div>
+
+<div layout="row" layout-align="center center">
+
+<h3 flex="30" align="center">TxPower</h3>
+<b flex="10" align="center">:</b>
+<h3 flex="30" align="center" style="color:#888">20mW</h3>
+
+</div>
+
+<div layout="row" layout-align="center center">
+
+<h3 flex="30" align="center">Frequency</h3>
+<b flex="10" align="center">:</b>
+<h3 flex="30" align="center" style="color:#888">100 ms</h3>
+
+</div>
+
+<hr flex></hr>
+
+<div layout="row" style="margin-top:20px;" layout-align="center center">
+  <md-button ng-click="screen=4;title='URL Configuration';" class="md-raised md-primary"> EDIT </md-button>
+</div>
+<div layout="row" style="margin-top:20px;" layout-align="center center">
+  <md-button ng-click="screen=1;title='Nearby Devices';" class="md-raised md-primary"> DONE </md-button>
+</div>
+
+
+
+</div>
+
+<div ng-show="screen==4" layout-fill style="margin-left:10%;margin-right:10%" class="" layout="column" layout-align="center start" layout-padding="5%">
 
 <span ng-show="globalError" style="color:red" id="globalError"></span>
 <div flex="50" layout="column" style="width:100%">
@@ -109,7 +246,11 @@
         </md-list-item>
 </div>
 
-<md-button ng-click="startBroadcasting()" ng-disabled="shouldDisable()" class="md-raised md-primary" style="position:absolute;bottom:5%;right:5%"> START BROADCASTING </md-button>
+<md-button ng-click="screen=3;title='Device ID';" class="md-raised md-primary"
+ style="position:absolute;bottom:5%;left:5%"> CANCEL </md-button>
+
+<md-button ng-click="startBroadcasting()" ng-disabled="shouldDisable()" class="md-raised md-primary"
+ style="position:absolute;bottom:5%;right:5%"> START BROADCASTING </md-button>
 </div>
 <div ng-show="loading" class="overlay">
 
@@ -119,10 +260,10 @@
 
   </div>
   <!-- Angular Material requires Angular.js Libraries -->
-  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular.js"></script>
   <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-animate.min.js"></script>
   <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-aria.min.js"></script>
-  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-messages.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-messages.js"></script>
 
   <!-- Angular Material Library -->
   <script src="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.js"></script>
@@ -134,7 +275,7 @@
      */
     var scope;
     var characteristic;
-    var app = angular.module('myApp', ['ngMaterial']);
+    var app = angular.module('myApp', ['ngMaterial','ngMessages']);
 
     app.controller("myCtrl", function($scope) {
       $scope.url = "";
@@ -147,8 +288,31 @@
       $scope.shorteningLinkedInUrlSuccess = false;
       $scope.shorteningEnteredUrlSuccess = false;
       $scope.globalError = false;
+      $scope.isSignedIn = false;
       $scope.loading = false;
+      $scope.screen = 2;
+      $scope.myDeviceId = '';
+      $scope.myDevicePassword = '';
+      $scope.myDevicePin = '';
 
+      $scope.devicesList = [];
+      $scope.title = "Nearby Devices"
+
+      $scope.addToDeviceList = function(device){
+
+        $scope.devicesList.push(device);
+        $scope.apply;
+
+      }
+
+      $scope.scan = function(){
+
+      if (isWebBluetoothEnabled()) {
+
+          onChooseClick();
+        }
+
+      }
 
       $scope.shouldDisable = function(){
 
@@ -287,6 +451,17 @@
 
 
     });
+
+
+    function isWebBluetoothEnabled() {
+        if (navigator.bluetooth) {
+          return true;
+        } else {
+          alert('Web Bluetooth API is not available.\n' +
+                                  'Please make sure the Web Bluetooth flag is enabled.');
+          return false;
+        }
+      }
 
     function OnLinkedInFrameworkLoad() {
       IN.Event.on(IN, "auth", OnLinkedInAuth);

@@ -12,12 +12,14 @@ function onChooseClick() {
   .then(device => {
     console.log('> Found ' + device.name);
     console.log('Connecting to GATT Server...');
-    return device.gatt.connect();
+    if(devicesList.indexOf(device)>-1)
+    devicesList.push(device);
+    //return device.gatt.connect();
   })
   .then(server => {
     console.log('Getting Config Service...');
     return server.getPrimaryService('ee0c2080-8786-40ba-ab96-99b91ac981d8');
-  })								
+  })
   .then(service => {
     console.log('Getting URI Data Characteristic...');
     return service.getCharacteristic('ee0c2084-8786-40ba-ab96-99b91ac981d8');
@@ -33,7 +35,7 @@ function onChooseClick() {
 
 
 function onWrite(url){
-	
+
 	console.log('Writing value...==> '+url);
 	console.log(characteristic);
    let xyz = text2ua(url);
