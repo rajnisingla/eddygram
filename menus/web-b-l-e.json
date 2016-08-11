@@ -1,0 +1,26 @@
+{
+  "context-menu": {
+    "atom-text-editor": [
+      {
+        "label": "Toggle web-b-l-e",
+        "command": "web-b-l-e:toggle"
+      }
+    ]
+  },
+  "menu": [
+    {
+      "label": "Packages",
+      "submenu": [
+        {
+          "label": "web-b-l-e",
+          "submenu": [
+            {
+              "label": "Toggle",
+              "command": "web-b-l-e:toggle"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
